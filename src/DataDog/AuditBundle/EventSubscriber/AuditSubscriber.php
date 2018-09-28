@@ -198,7 +198,18 @@ class AuditSubscriber implements EventSubscriber
             list($entity, $ch) = $entry;
             // the changeset might be updated from UOW extra updates
             $ch = array_merge($ch, $uow->getEntityChangeSet($entity));
-            $this->update($em, $entity, $ch);
+            $isChanged = false;
+            foreach ($ch as $field => $changes) {
+                if ($changes[0] != $changes[1]) {
+                    $isChanged = true;
+                } else {
+                    unset($ch[$field]);
+                }
+            }
+
+            if ($isChanged) {
+                $this->update($em, $entity, $ch);
+            }
         }
 
         foreach ($this->inserted as $entry) {
